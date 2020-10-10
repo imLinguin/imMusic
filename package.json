@@ -1,0 +1,18 @@
+{
+  "name": "im-music",
+  "version": "1.0.0",
+  "description": "Discord music test",
+  "main": "index.js",
+  "scripts": {
+    "start": "node index.js",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "Linguin",
+  "license": "ISC",
+  "dependencies": {
+    "@discordjs/opus": "^0.3.2",
+    "discord-player": "^3.0.0-beta.1",
+    "discord.js": "^12.3.1",
+    "dotenv": "^8.2.0"
+  }
+}
