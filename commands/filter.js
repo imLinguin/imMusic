@@ -1,7 +1,7 @@
 const filters = require("../config/filters.json");
 module.exports = {
     name: 'filter',
-    aliases:['filt'],
+    aliases:['fil'],
     run(message,args,client)
     {
         if(!client.player.isPlaying(message)) return message.channel.send(`No music playing on this server ${emotes.error}`);
