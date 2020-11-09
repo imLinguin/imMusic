@@ -1,23 +1,15 @@
 module.exports = {
   name: "queue",
   aliases: ["q"],
-  async run(message, args, client) {
-    const { tracks } = client.player.getQueue(message);
-    let songs = "```";
-    let num = 1;
-    tracks.forEach((track) => {
-      songs += `${num}. ${track.title} ${track.duration}\n`;
-      num++;
-    });
-    songs += "```";
-    const embed = {
-      color: 0xe41ee8,
-      title: `Queue for ${message.guild.name}`,
-      description: songs,
-      footer: {
-        text: `Invoked by: ${message.author.tag}`,
-      },
-    };
-    message.channel.send({ embed: embed });
+  run(message, args, client) {
+    const queue = client.queues.get(message.guild.id);
+    if (!queue) return message.channel.send("No music playing currently!");
+    let msg = "";
+    n = 1;
+    for (i = n - 1; i < queue.tracks.length; i++) {
+      msg += `${n}. ${queue.tracks[i].title}\n`;
+      n++;
+    }
+    message.channel.send(msg, { code: true, split: true });
   },
 };

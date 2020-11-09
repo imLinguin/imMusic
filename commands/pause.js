@@ -1,9 +1,10 @@
 module.exports = {
-    name: 'pause',
-    aliases:['ps'],
-    async run(message,args,client)
-    {
-        await client.player.pause(message);
-        message.react('⏸️')
-    }
-}
+  name: "pause",
+  aliases: [],
+  run(message, args, client) {
+    let queue = client.queues.get(message.guild.id);
+    if (!queue) return message.channel.send("No music playing currently!");
+    queue.dispatcher.pause();
+    message.react("⏸");
+  },
+};

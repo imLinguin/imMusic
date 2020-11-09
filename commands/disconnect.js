@@ -1,15 +1,12 @@
 module.exports = {
-    name: 'disconnect',
-    aliases:['fuckoff','getout'],
-    run(message,args,client)
-    {
-        const query = args.join(' ')
-        if (!client.player.isPlaying(message) || query) {
-            if (!query) return message.channel.send(`You have to provide a link or query`);
-            client.player.play(message, query, message.author);
-            message.react('764459481303875584')
-        } else {
-        client.player.resume(message);
-        }
-    }
-}
+  name: "disconnect",
+  aliases: ["leave", "fuckoff"],
+  run(message, args, client) {
+    let queue = client.queues.get(message.guild.id);
+    if (!queue) return message.channel.send("No music playing currently!");
+    queue.dispatcher.destroy();
+    queue.voiceConnection.channel.leave();
+    client.queues.delete(message.guild.id);
+    message.react("👋");
+  },
+};
