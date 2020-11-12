@@ -1,6 +1,6 @@
 const Utils = require("../lib/Utils");
 const ytdl = require("discord-ytdl-core");
-const ytpl = require("ytpl");
+const ytpl = require("ytfps");
 const spotify = require("spotify-url-info");
 const soundcloud = require("soundcloud-scraper");
 const key = soundcloud.keygen();
@@ -8,13 +8,13 @@ const scrapper = new soundcloud.Client(key);
 const Track = require("../lib/Track");
 const Queue = require("../lib/Queue");
 const Embeds = require("../lib/Embeds");
+const { NowPlaying } = require("../lib/Embeds");
 
 module.exports = {
   name: "play",
   aliases: ["p"],
   async run(message, args, client) {
     const query = args.join(" ");
-    const queryType = classifyQuery(query);
     let trackToAdd;
     let tracksToAdd = [];
     let embed;
@@ -27,8 +27,12 @@ module.exports = {
     ) {
       client.queues.get(message.guild.id).dispatcher.resume();
       return message.react("▶");
+    } else {
+      if (!query || query === "")
+        return message.channel.send("❌ You have to specify link or query!");
     }
 
+    const queryType = classifyQuery(query);
     switch (queryType) {
       case "youtube-video":
         tracksToAdd = [];
@@ -38,31 +42,35 @@ module.exports = {
         embed = Embeds.YouTubeSongAnnounce(trackToAdd);
         break;
       case "youtube-playlist":
-        const { items } = await ytpl(query, { limit: 1000 });
-        for (item of items) {
+        let ID = Utils.separatePlaylistID(query);
+        const YTplaylistData = await ytpl(ID);
+
+        for (item of YTplaylistData.videos) {
           if (item.duration || item.author)
             tracksToAdd.push(new Track(item, message.author)); // 775294971275378709
         }
-        embed = Embeds.YouTubePlaylistAnnounce(items);
+        embed = Embeds.YouTubePlaylistAnnounce(YTplaylistData.videos);
         break;
       case "spotify-song":
         let songData = await spotify.getData(query);
-        songData = await Utils.fetchYoutube(
+        let spotifyData = await Utils.fetchYoutube(
           `${songData.artist || songData.artists[0].name} ${songData.name}` // 775294970721992714
         );
-        trackToAdd = new Track(songData, message.author);
+        trackToAdd = new Track(spotifyData, message.author);
         embed = Embeds.SpotifySongAnnounce(trackToAdd);
         break;
       case "spotify-playlist":
         tracksToAdd = [];
-        let playlistData = await spotify.getData(query);
+        let playlistData = await spotify.getTracks(query);
         let i = 0;
-        while (i < playlistData.tracks.items.length) {
-          let data = playlistData.tracks.items;
+        while (i < playlistData.length) {
+          let data = playlistData;
           if (!data[i]) break;
-          let itemData = playlistData.tracks.items[i]; // 775294970721992714
-          itemData.title = itemData.track.name;
-          itemData.author = itemData.track.artists[0];
+          let itemData = playlistData[i]; // 775294970721992714
+          itemData.title = itemData.name;
+          itemData.author = itemData.artists[0] || itemData.artists[0].name;
+          itemData.thumbnail = "lol";
+          itemData.length = itemData.duration_ms / 1000;
           tracksToAdd.push(new Track(itemData, message.author));
           i++;
         }
@@ -77,6 +85,8 @@ module.exports = {
         break;
       case "search":
         let youtubeSearch = await Utils.fetchYoutube(`${query}`); // 775295981063241738
+        if (youtubeSearch === null)
+          return message.channel.send("❌ No results found");
         trackToAdd = new Track(youtubeSearch, message.author);
         embed = Embeds.CustomSearchAnnounce(trackToAdd);
         break;
@@ -119,10 +129,10 @@ const classifyQuery = (query) => {
     return "spotify-song";
   } else if (Utils.isSpotifyPlaylist(query)) {
     return "spotify-playlist";
-  } else if (Utils.isYTPlaylistLink(query)) {
-    return "youtube-playlist";
   } else if (Utils.isYTVideoLink(query)) {
     return "youtube-video";
+  } else if (Utils.isYTPlaylistLink(query)) {
+    return "youtube-playlist";
   } else {
     return "search";
   }
@@ -141,6 +151,7 @@ const connectAndPlay = async (message, client) => {
     );
     queue.tracks[0] = new Track(await youtubeTrack, message.author);
   }
+  NowPlaying(queue, message);
   let dispatcher = queue.dispatcher || null;
   dispatcher = queue.voiceConnection
     .play(

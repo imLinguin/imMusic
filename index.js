@@ -40,4 +40,15 @@ client.on("message", async (message) => {
   }
 });
 
+client.on("voiceStateUpdate", (oldState, newState) => {
+  const queue = client.queues.find((g) => g.guildID === oldState.guild.id);
+  if (!queue) return;
+
+  if (newState.member.id === client.user.id && !newState.channelID) {
+    queue.stream.destroy();
+    queue.dispatcher.destroy();
+    client.queues.delete(newState.guild.id);
+  }
+});
+
 client.login(process.env.TOKEN);

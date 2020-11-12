@@ -15,8 +15,8 @@
     "dotenv": "^8.2.0",
     "moment": "^2.29.1",
     "soundcloud-scraper": "^4.0.0",
-    "spotify-url-info": "^2.0.0",
-    "youtube-sr": "^1.0.4",
-    "ytpl": "^1.0.1"
+    "spotify-url-info": "^2.2.0",
+    "youtube-sr": "^1.0.7",
+    "ytfps": "^1.0.1"
   }
 }
