@@ -118,7 +118,7 @@ module.exports = {
       }
     }
     if (!client.queues.get(message.guild.id).isPlaying)
-      connectAndPlay(message, client);
+      Utils.connectAndPlay(message, client);
   },
 };
 
@@ -136,55 +136,4 @@ const classifyQuery = (query) => {
   } else {
     return "search";
   }
-};
-
-const connectAndPlay = async (message, client) => {
-  let queue = client.queues.get(message.guild.id);
-  if (!queue.voiceConnection) {
-    queue.voiceConnection = await message.member.voice.channel.join();
-  }
-
-  if (queue.tracks[0].url === null) {
-    let track = queue.tracks[0];
-    let youtubeTrack = await Utils.fetchYoutube(
-      `${track.author} ${track.title}`
-    );
-    queue.tracks[0] = new Track(await youtubeTrack, message.author);
-  }
-  NowPlaying(queue, message);
-  let dispatcher = queue.dispatcher || null;
-  dispatcher = queue.voiceConnection
-    .play(
-      ytdl(queue.tracks[0].url, {
-        filter: "audioonly",
-        opusEncoded: true,
-        quality: "highestaudio",
-      }),
-      {
-        type: "opus",
-      }
-    )
-    .on("finish", () => {
-      queue.tracks.shift();
-      if (queue.tracks.length === 0) {
-        message.guild.me.voice.channel.leave();
-        queue.firstMessage.channel
-          .send({
-            embed: {
-              color: 0x51cab0,
-              title: "Queue ended so I'm leaving",
-              description: "NAURA",
-            },
-          })
-          .then((m) => m.react("👋"));
-        client.queues.delete(message.guild.id);
-        return;
-      }
-      connectAndPlay(message, client);
-    });
-
-  queue.isPlaying = true;
-  queue.dispatcher = dispatcher;
-
-  client.queues.set(message.guild.id, queue);
 };
