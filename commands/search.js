@@ -7,8 +7,11 @@ module.exports = {
   aliases: [],
   async run(message, args, client) {
     let queue = client.queues.get(message.guild.id);
-
-    const data = await Utils.fetchYT(args.join(" "));
+    const query = args.join(" ");
+    if (!query || query === "") {
+      return message.channel.send("❌ You have to specify a search query!");
+    }
+    const data = await Utils.fetchYT(query);
     if (!data || !data[0]) {
       return message.channel.send("❌ No results found!");
     }
@@ -47,6 +50,8 @@ module.exports = {
         client.queues.set(message.guild.id, queue);
         Embeds.CustomSearchAnnounce(trackToAdd);
         if (!queue.isPlaying) Utils.connectAndPlay(message, client);
+      } else {
+        message.react("❌");
       }
     });
     collector.on("end", (data) => {
