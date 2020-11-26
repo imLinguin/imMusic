@@ -30,7 +30,7 @@ client.on("ready", () => {
 client.on("message", async (message) => {
   if (message.author.bot || !message.guild || !message.content.startsWith("*"))
     return;
-  if (!message.member.voice.channel)
+  if (!message.member.voice.channel && message.content !== ("*h" || "*help"))
     return message.channel.send("❌ You're not in a voice channel.");
 
   const args = message.content.slice(1).trim().split(/ +/g);
