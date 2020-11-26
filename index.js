@@ -18,6 +18,13 @@ commands.forEach((command) => {
 
 client.on("ready", () => {
   console.log(`Ready! ${client.user.tag}`);
+  client.user.setPresence({
+    activity: {
+      name: `prefix * | ${client.guilds.cache.size} servers`,
+      type: "LISTENING",
+    },
+    status: "online",
+  });
 });
 
 client.on("message", async (message) => {

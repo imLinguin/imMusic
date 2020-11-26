@@ -47,7 +47,7 @@ module.exports = {
 
         for (item of YTplaylistData.videos) {
           if (item.duration || item.author)
-            tracksToAdd.push(new Track(item, message.author)); // 775294971275378709
+            tracksToAdd.push(new Track(item, message.author, true)); // 775294971275378709
         }
         embed = Embeds.YouTubePlaylistAnnounce(YTplaylistData.videos);
         break;
@@ -71,7 +71,7 @@ module.exports = {
           itemData.author = itemData.artists[0] || itemData.artists[0].name;
           itemData.thumbnail = "lol";
           itemData.length = itemData.duration_ms / 1000;
-          tracksToAdd.push(new Track(itemData, message.author));
+          tracksToAdd.push(new Track(itemData, message.author, true));
           i++;
         }
         embed = Embeds.SpotifyListAnnounce(tracksToAdd);
