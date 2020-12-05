@@ -38,7 +38,7 @@ module.exports = {
         tracksToAdd = [];
         const videoData = await ytdl.getBasicInfo(query);
         videoData.url = videoData.videoDetails.video_url;
-        trackToAdd = new Track(videoData, message.author); // 775294971275378709
+        trackToAdd = new Track(videoData, message.author,false); // 775294971275378709
         embed = Embeds.YouTubeSongAnnounce(trackToAdd);
         break;
       case "youtube-playlist":
@@ -56,7 +56,7 @@ module.exports = {
         let spotifyData = await Utils.fetchYoutube(
           `${songData.artist || songData.artists[0].name} ${songData.name}` // 775294970721992714
         );
-        trackToAdd = new Track(spotifyData, message.author);
+        trackToAdd = new Track(spotifyData, message.author,false);
         embed = Embeds.SpotifySongAnnounce(trackToAdd);
         break;
       case "spotify-playlist":
@@ -80,14 +80,14 @@ module.exports = {
         tracksToAdd = [];
         let soundclouData = await scrapper.getSongInfo(query);
         let ytData = await Utils.fetchYoutube(`${soundclouData.title}`); // 775294969384140811
-        trackToAdd = new Track(ytData, message.author);
+        trackToAdd = new Track(ytData, message.author,false);
         embed = Embeds.SoundCloudSongAnnounce(trackToAdd);
         break;
       case "search":
         let youtubeSearch = await Utils.fetchYoutube(`${query}`); // 775295981063241738
         if (youtubeSearch === null)
           return message.channel.send("❌ No results found");
-        trackToAdd = new Track(youtubeSearch, message.author);
+        trackToAdd = new Track(youtubeSearch, message.author,false);
         embed = Embeds.CustomSearchAnnounce(trackToAdd);
         break;
     }
