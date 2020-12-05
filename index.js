@@ -52,7 +52,6 @@ client.on("voiceStateUpdate", (oldState, newState) => {
   if (!queue) return;
 
   if (newState.member.id === client.user.id && !newState.channelID) {
-    queue.stream.destroy();
     queue.dispatcher.destroy();
     client.queues.delete(newState.guild.id);
   }
