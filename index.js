@@ -16,14 +16,20 @@ commands.forEach((command) => {
   }
 });
 
+let statusinterval;
 client.on("ready", () => {
   console.log(`Ready! ${client.user.tag}`);
-  client.user.setPresence({
-    activity: {
-      name: `prefix * | ${client.guilds.cache.size} servers`,
-      type: "LISTENING",
-    },
-    status: "online",
+  statusinterval = setInterval(() => {
+    client.user.setPresence(
+      {
+        activity: {
+          name: `prefix * | ${client.guilds.cache.size} servers`,
+          type: "LISTENING",
+        },
+        status: "online",
+      },
+      120000
+    );
   });
 });
 
