@@ -57,4 +57,4 @@ client.on("voiceStateUpdate", (oldState, newState) => {
   }
 });
 
-client.login(process.env.BETATOKEN);
+client.login(process.env.TOKEN);
