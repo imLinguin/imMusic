@@ -7,24 +7,24 @@ module.exports = {
       title: `Welcome in the help section`,
       fields: [
         {
-          name: "👮‍♂️Prefix",
+          name: "👮‍♂️ Prefix",
           value: "Prefix for the bot is *. For now you can't change it.",
           inline: false,
         },
         {
-          name: "👏Command usage:",
-          value: `So you are wondering how to use commands on ${message.guild.name}?\nIts very simple.\`*play\``,
+          name: "👏 Command usage:",
+          value: `So you are wondering how to use commands on ${message.guild.name}?\nIt's very simple. \`*play\``,
           inline: false,
         },
         {
-          name: "👀List of available commands",
+          name: "👀 List of available commands",
           value:
-            "play, search, shuffle, skip, nowplaying, move, loop, disconnect",
+            "play, search, shuffle, skip, nowplaying, move, loop, disconnect, filters, forward",
           inline: false,
         },
         {
-          name: "🤫Coming soon",
-          value: "Sound effects such as bassboost",
+          name: "🤫 Coming soon",
+          value: "Idk, you can tell me on DM: Linguin#9999",
           inline: false,
         },
       ],
