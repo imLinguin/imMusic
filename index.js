@@ -48,13 +48,41 @@ client.on("message", async (message) => {
 });
 
 client.on("voiceStateUpdate", (oldState, newState) => {
-  const queue = client.queues.find((g) => g.guildID === oldState.guild.id);
+  let queue = client.queues.find((g) => g.guildID === oldState.guild.id);
   if (!queue) return;
 
   if (newState.member.id === client.user.id && !newState.channelID) {
     queue.dispatcher.destroy();
+    queue.stream.destroy();
     client.queues.delete(newState.guild.id);
   }
+  if (
+    queue.voiceConnection &&
+    queue.voiceConnection.channel.members.array().length <= 1
+  ) {
+    setTimeout(() => {
+      if (
+        queue.voiceConnection &&
+        queue.voiceConnection.channel.members.array().length <= 1
+      ) {
+        queue.dispatcher.destroy();
+        queue.voiceConnection.dispatcher.destroy();
+        queue.voiceConnection.channel.leave();
+        queue.stream.destroy();
+        client.queues.delete(message.guild.id);
+        queue.firstMessage.channel
+          .send({
+            embed: {
+              color: 0x51cab0,
+              title: "I was innactive for too long.",
+              description: "Bye",
+            },
+          })
+          .then((m) => m.react("👋"));
+      }
+    }, 50000);
+  }
+  queue = null;
 });
 
 client.login(process.env.TOKEN);

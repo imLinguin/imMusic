@@ -1,6 +1,6 @@
 const Utils = require("../lib/Utils");
 const ytdl = require("discord-ytdl-core");
-const ytpl = require("ytfps");
+const ytpl = require("ytpl");
 const spotify = require("spotify-url-info");
 const soundcloud = require("soundcloud-scraper");
 const key = soundcloud.keygen();
@@ -8,7 +8,6 @@ const scrapper = new soundcloud.Client(key);
 const Track = require("../lib/Track");
 const Queue = require("../lib/Queue");
 const Embeds = require("../lib/Embeds");
-const { NowPlaying } = require("../lib/Embeds");
 
 module.exports = {
   name: "play",
@@ -38,23 +37,25 @@ module.exports = {
         tracksToAdd = [];
         const videoData = await ytdl.getBasicInfo(query);
         videoData.url = videoData.videoDetails.video_url;
-        trackToAdd = new Track(videoData, message.author, false); // 775294971275378709
+        trackToAdd = new Track(videoData, message.author, false);
         embed = Embeds.YouTubeSongAnnounce(trackToAdd);
         break;
       case "youtube-playlist":
-        let ID = Utils.separatePlaylistID(query);
-        const YTplaylistData = await ytpl(ID);
-
-        for (item of YTplaylistData.videos) {
-          if (item.duration || item.author)
-            tracksToAdd.push(new Track(item, message.author, true)); // 775294971275378709
+        let ID = await Utils.separatePlaylistID(query);
+        const YTplaylistData = (await ytpl(ID)).items;
+        console.log(YTplaylistData);
+        for (item of YTplaylistData) {
+          if (item.duration || item.author) {
+            item.author = item.author.name;
+            tracksToAdd.push(new Track(item, message.author, true));
+          }
         }
-        embed = Embeds.YouTubePlaylistAnnounce(YTplaylistData.videos);
+        embed = Embeds.YouTubePlaylistAnnounce(tracksToAdd);
         break;
       case "spotify-song":
         let songData = await spotify.getData(query);
         let spotifyData = await Utils.fetchYoutube(
-          `${songData.artist || songData.artists[0].name} ${songData.name}` // 775294970721992714
+          `${songData.artist || songData.artists[0].name} ${songData.name}`
         );
         trackToAdd = new Track(spotifyData, message.author, false);
         embed = Embeds.SpotifySongAnnounce(trackToAdd);
@@ -66,7 +67,7 @@ module.exports = {
         while (i < playlistData.length) {
           let data = playlistData;
           if (!data[i]) break;
-          let itemData = playlistData[i]; // 775294970721992714
+          let itemData = playlistData[i];
           itemData.title = itemData.name;
           itemData.author = itemData.artists[0] || itemData.artists[0].name;
           itemData.thumbnail = "Not Fetched";
@@ -79,12 +80,12 @@ module.exports = {
       case "soundcloud":
         tracksToAdd = [];
         let soundclouData = await scrapper.getSongInfo(query);
-        let ytData = await Utils.fetchYoutube(`${soundclouData.title}`); // 775294969384140811
+        let ytData = await Utils.fetchYoutube(`${soundclouData.title}`);
         trackToAdd = new Track(ytData, message.author, false);
         embed = Embeds.SoundCloudSongAnnounce(trackToAdd);
         break;
       case "search":
-        let youtubeSearch = await Utils.fetchYoutube(`${query}`); // 775295981063241738
+        let youtubeSearch = await Utils.fetchYoutube(`${query}`);
         if (youtubeSearch === null)
           return message.channel.send("❌ No results found");
         trackToAdd = new Track(youtubeSearch, message.author, false);
@@ -119,6 +120,9 @@ module.exports = {
     }
     if (!client.queues.get(message.guild.id).isPlaying)
       Utils.connectAndPlay(message, client);
+
+    trackToAdd = null;
+    tracksToAdd = null;
   },
 };
 
@@ -129,10 +133,10 @@ const classifyQuery = (query) => {
     return "spotify-song";
   } else if (Utils.isSpotifyPlaylist(query)) {
     return "spotify-playlist";
-  } else if (Utils.isYTVideoLink(query)) {
-    return "youtube-video";
   } else if (Utils.isYTPlaylistLink(query)) {
     return "youtube-playlist";
+  } else if (Utils.isYTVideoLink(query)) {
+    return "youtube-video";
   } else {
     return "search";
   }
