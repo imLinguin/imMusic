@@ -19,7 +19,7 @@ module.exports = {
         {
           name: "👀 List of available commands",
           value:
-            "play, search, shuffle, skip, nowplaying, move, loop, disconnect, filters, forward",
+            "play, search, shuffle, skip, nowplaying, move, loop, disconnect, filters, forward, remove",
           inline: false,
         },
         {

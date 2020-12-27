@@ -1,6 +1,6 @@
 module.exports = {
   name: "pause",
-  aliases: [],
+  aliases: ["stop"],
   run(message, args, client) {
     let queue = client.queues.get(message.guild.id);
     if (!queue) return message.channel.send("No music playing currently!");
