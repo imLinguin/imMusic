@@ -16,4 +16,4 @@ After that create `.env` file. (You can change name of `.env-sample`). Then fill
 `npm start` is launching a bot.
 
 ## Contributing
-Go ahead and create a pulk request.
+Go ahead and create a pull request.
