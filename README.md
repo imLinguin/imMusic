@@ -1,5 +1,5 @@
 ## Short Description
-Music bot which has a lot of functions usually available in pay plans in other bots.
+Music bot which has a lot of functions usually available in paid plans in other bots.
 
 ## Hosting own instance of the bot
 You can easly create own instance of the bot by cloning this repo:
