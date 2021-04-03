@@ -6,7 +6,7 @@ import commandHandler
 
 
 client = discord.Client()
-client.
+
 # Logging utility
 logger = logging.getLogger('discord')
 logger.setLevel(logging.INFO)
