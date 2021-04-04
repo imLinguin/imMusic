@@ -2,7 +2,7 @@ from lib import utils
 async def run(message,args,client):
     # Checks
     if not args:
-        await message.reply("You have to provide a **URL** or query")
+        utils.resume(message)
         return
     if not await utils.checkVoiceChannel(message):
         await message.reply("You have to be in a voice channel")
@@ -15,10 +15,4 @@ async def run(message,args,client):
     if not utils.checkForExistingQueue(message):
         await utils.createQueue(message)
 
-
-    await utils.stream(message,args[0])
-    
-
-
-    
-    
+    await utils.addToQueue(message,args,client.loop)

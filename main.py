@@ -17,6 +17,7 @@ logger.addHandler(handler)
 @client.event
 async def on_ready():
     print('Zalogowano jako {0.user}'.format(client))
+    print('------')
 
 @client.event
 async def on_message(message):
@@ -26,4 +27,4 @@ async def on_message(message):
     if message.content.startswith('*'):
         await commandHandler.doStuff(message,client)
 
-client.run('token here')
+client.run('NzQ1NjIxNzY3ODE2NzQwOTM2.Xz0cYg.d-z453AGk0Nk55wrPrt_0jk9jcE')
