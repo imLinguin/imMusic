@@ -4,8 +4,8 @@ import youtube_dl,discord,asyncio,re
 
 ytdl_format_options = {
     'format': 'bestaudio/best',
-    'outtmpl': '%(extractor)s-%(id)s-%(title)s.%(ext)s',
     'restrictfilenames': True,
+    "forcejson":True,
     'noplaylist': True,
     'nocheckcertificate': True,
     'ignoreerrors': False,
@@ -25,12 +25,12 @@ ytdl = youtube_dl.YoutubeDL(ytdl_format_options)
 
 queues={}
 
-async def _from_url(url):
+def _from_url(url):
     data = ytdl.extract_info(url,download=False)
     if "entries" in data:
         data = data["entries"][0]
     URL = data['url']
-    return discord.FFmpegPCMAudio(URL, **ffmpeg_options)
+    return discord.FFmpegOpusAudio(URL, **ffmpeg_options)
 
 async def checkVoiceChannel(message):
     if not message.author.voice or not message.author.voice.channel:
@@ -63,20 +63,23 @@ async def destroyQueue(message):
     await queues[message.guild.id].voiceConnection.disconnect()
     queues[message.guild.id] = None
 
-async def addToQueue(message,query,loop):
-    if len(query) > 1 or not re.search("https:\/\/"," ".join(query)):
-        # Do zrobienia wyszukiwanie na yt
+async def addToQueue(message,query):
+    
+    if len(query) > 1:
         query = " ".join(query)
-        info = ytdl.extract_info(query)
-        if info:
-            queues[message.guild.id].tracks.append(Track.Track(query,info,message))
-            await stream(message,loop)
     else:
         query = query[0]
-    info = ytdl.extract_info(query)
-    queues[message.guild.id].tracks.append(Track.Track(query,info,message))
+    info = ytdl.extract_info(query,download=False)
+    if "entries" in info:
+        info = info["entries"][0]
+    if not info:
+        return
+    newTrack = Track.Track(query,info,message)
+    queues[message.guild.id].tracks.append(newTrack)
+    await message.channel.send("Added **{0}** by {1} to queue".format(newTrack.title,newTrack.author))
+
     if not queues[message.guild.id].isPlaying:
-        await stream(message,loop)
+        stream(message)
 
 def pause(message):
     queues[message.guild.id].voiceConnection.pause()
@@ -85,8 +88,20 @@ def resume(message):
     if queues[message.guild.id].voiceConnection.is_paused():
         queues[message.guild.id].voiceConnection.resume()
 
-async def stream(message,loop):
+def skip(message):
+    print("Skip")
+
+def streamEnded(e,message):
+    if e != None:
+        print("Player error {0}".format(e))
+    elif checkForExistingQueue(message):
+        queues[message.guild.id].isPlaying = False
+        queues[message.guild.id].tracks.pop(0)
+        if len(queues[message.guild.id].tracks) > 0:
+            stream(message)
+
+def stream(message):
     track = queues[message.guild.id].tracks[0]
-    queues[message.guild.id].player = await _from_url(track.url)
-    queues[message.guild.id].voiceConnection.play(queues[message.guild.id].player, after=lambda e: print(f'Player error: {e}') if e else None)
+    queues[message.guild.id].player = _from_url(track.url)
+    queues[message.guild.id].voiceConnection.play(queues[message.guild.id].player, after=lambda e: streamEnded(e,message))
     queues[message.guild.id].isPlaying = True

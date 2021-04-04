@@ -15,4 +15,4 @@ async def run(message,args,client):
     if not utils.checkForExistingQueue(message):
         await utils.createQueue(message)
 
-    await utils.addToQueue(message,args,client.loop)
+    await utils.addToQueue(message,args)
