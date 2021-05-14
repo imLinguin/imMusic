@@ -13,7 +13,7 @@ You will also need [ffmpeg](https://ffmpeg.org/) installed on your machine.
 
 After that create `.env` file. (You can change name of `.env-sample`). Then fill the TOKEN with your bot token.
 
-`npm start` is launching a bot.
+`python main.py` is launching a bot.
 
 ## Contributing
 Go ahead and create a pull request.
