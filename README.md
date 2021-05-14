@@ -1,4 +1,3 @@
-<<<<<<< HEAD
 ## Short Description
 Music bot which has a lot of functions usually available in paid plans in other bots.
 
