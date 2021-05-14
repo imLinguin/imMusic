@@ -1,3 +1,5 @@
-from lib import utils 
+from lib import utils
+
+
 async def run(message):
-    utils.skip(message)
+    await utils.skip(message)

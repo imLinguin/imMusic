@@ -1,15 +1,15 @@
+import discord
+
+
 class Track:
-    def __init__(self,url,data,message):
+    def __init__(self, url, data, message):
         self.url = url
-        self.title = data.get("track")
-        self.author = data.get("artist")
+        self.stream_url = data.get("url")
+        self.title = data.get("title")
+        self.author = data.get("creator")
         self.duration = data.get("duration")
         self.requestedBy = message.author
-    
 
-    def getEmbed(self):
-        return {
-            "title":self.title,
-            "description":"Requested by {0}".format(self.requestedBy.name),
-            "footer":"cool"
-        }
+    def get_embed(self):
+        return discord.Embed(title="Now Playing", description=self.title,
+                             footer="Requested by {0}".format(self.requestedBy.name))
