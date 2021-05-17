@@ -39,11 +39,11 @@ async def run(message, args):
     for requested in args:
         found = filters.get(requested.lower())
         deleted = False
-        for i in range(0, len(queue.filters)):
-            print(i)
+        for i in range(len(queue.filters)):
             if queue.filters[i] == found:
                 queue.filters.pop(i)
                 deleted = True
+                break
 
         if found and not deleted:
             queue.filters.append(found)
