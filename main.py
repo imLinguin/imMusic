@@ -1,11 +1,11 @@
-import discord
+from discord import Client, Activity, ActivityType
 import logging
 # Bot modules
 import commandHandler
 import os
 from dotenv import load_dotenv
 load_dotenv()
-client = discord.Client()
+client = Client()
 # Logging utility
 logger = logging.getLogger('discord')
 logger.setLevel(logging.INFO)
@@ -19,6 +19,8 @@ logger.addHandler(handler)
 @client.event
 async def on_ready():
     print('Zalogowano jako {0.user}'.format(client))
+    await client.change_presence(activity=Activity(
+        name="Top Discord music bots", type=ActivityType.competing))
     print('------')
 
 

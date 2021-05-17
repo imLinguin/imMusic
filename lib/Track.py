@@ -12,4 +12,4 @@ class Track:
 
     def get_embed(self):
         return discord.Embed(title="Now Playing", description=self.title,
-                             footer="Requested by {0}".format(self.requestedBy.name))
+                             footer="Requested by {0}".format(self.requestedBy.name), colour=discord.Color.from_rgb(35, 219, 201))

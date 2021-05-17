@@ -4,10 +4,11 @@ class Queue:
         self.voice_connection = connection
         self.player = None
         self.tracks = []
-        self.volume = 100
+        self.volume = 50
         self.is_playing = False
         self.filters = []
         self.filters_update = False
         self.first_message = message
         self.now_playing = None
+        self.now_playing_index = 0
         self.start_time = 0
