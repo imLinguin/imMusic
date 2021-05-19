@@ -2,7 +2,7 @@ from lib import utils
 
 
 async def run(message, args):
-    queue = utils.get_queue(message)
+    queue = utils.get_queue(message.guild.id)
     if not queue:
         await message.channel.send("No queue found on this server")
         return

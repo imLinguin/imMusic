@@ -9,7 +9,7 @@ async def run(message):
         await message.reply("No queue found on this server")
         return
 
-    queue = utils.get_queue(message)
+    queue = utils.get_queue(message.guild.id)
 
     queue.now_playing_index -= 2
     queue.voice_connection.stop()

@@ -29,7 +29,7 @@ async def do_stuff(message, client):
     elif cmd == "play" or cmd == "p":
         await play.run(message, args)
     elif cmd == "disconnect" or cmd == "fuckoff":
-        await utils.destroy_queue(message)
+        await utils.destroy_queue(message.guild.id)
         await message.add_reaction("👋")
     elif cmd == "pause":
         utils.pause(message)

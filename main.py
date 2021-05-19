@@ -1,9 +1,11 @@
-from discord import Client, Activity, ActivityType
+from discord import Client, Activity, ActivityType, Embed, Color
+import os
+import threading
+from dotenv import load_dotenv
 import logging
 # Bot modules
 import commandHandler
-import os
-from dotenv import load_dotenv
+from lib import utils
 load_dotenv()
 client = Client()
 # Logging utility
@@ -14,6 +16,9 @@ handler = logging.FileHandler(
 handler.setFormatter(logging.Formatter(
     '%(asctime)s:%(levelname)s:%(name)s: %(message)s'))
 logger.addHandler(handler)
+
+# Infinite loop to check every guild where queue ended to disconnect
+utils.check_disconnection
 
 
 @client.event
@@ -31,5 +36,15 @@ async def on_message(message):
 
     if message.content.startswith('*'):
         await commandHandler.do_stuff(message, client)
+
+
+@client.event
+async def on_voice_state_update(member, before, after):
+    if member.id == client.user.id:
+        if not after.channel:
+            queue = utils.get_queue(before.channel.guild.id)
+            await utils.destroy_queue(before.channel.guild.id)
+            await queue.first_message.channel.send(embed=Embed(
+                description="I got disconnected from the channel.", colour=Color.from_rgb(237, 19, 19)))
 
 client.run(os.getenv("TOKEN"))

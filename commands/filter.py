@@ -3,7 +3,7 @@ import discord
 
 filters = {
     "8D": "apulsator=hz=0.09",
-    "bassboost": "bass=g=20",
+    "bassboost": "bass=g=15",
     "echo": "aecho=in_gain=0.5:out_gain=0.5:delays=500:decays=0.2",
     "mono": 'pan=mono|c0=.5*c0+.5*c1',
     "nightcore": 'aresample=48000,asetrate=48000*1.25',
@@ -23,7 +23,7 @@ async def run(message, args):
         await message.channel.send(embed=embed)
         return
     elif not args:
-        queue = utils.get_queue(message)
+        queue = utils.get_queue(message.guild.id)
         msg = ""
         for val in queue.filters:
             for name in filters.keys():
@@ -34,7 +34,7 @@ async def run(message, args):
             title="List of active filters", description=msg, colour=discord.Color.from_rgb(35, 219, 201))
         await message.channel.send(embed=embed)
         return
-    queue = utils.get_queue(message)
+    queue = utils.get_queue(message.guild.id)
 
     for requested in args:
         found = filters.get(requested.lower())

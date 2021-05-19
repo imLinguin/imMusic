@@ -1,4 +1,4 @@
-import discord
+from discord import Embed, Color
 
 
 class Track:
@@ -11,5 +11,7 @@ class Track:
         self.requestedBy = message.author
 
     def get_embed(self):
-        return discord.Embed(title="Now Playing", description=self.title,
-                             footer="Requested by {0}".format(self.requestedBy.name), colour=discord.Color.from_rgb(35, 219, 201))
+        embed = Embed(title="Now Playing", description=self.title,
+                      colour=Color.from_rgb(35, 219, 201))
+        embed.set_footer(text="Requested by {0}".format(self.requestedBy.name))
+        return embed

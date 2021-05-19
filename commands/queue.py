@@ -1,4 +1,5 @@
 from lib import utils
+from discord import Embed, Color
 
 
 async def run(message):
@@ -14,4 +15,7 @@ async def run(message):
                 output += "🔴 "
             output = output + "{0}. {1}\n".format(counter, i.title)
             counter += 1
-    await message.channel.send("```{0}```".format(output))
+    if output:
+        await message.channel.send("```{0}```".format(output))
+    else:
+        await message.channel.send(embed=Embed(description="Queue is empty!", colour=Color.from_rgb(237, 19, 19)))

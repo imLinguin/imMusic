@@ -12,3 +12,4 @@ class Queue:
         self.now_playing = None
         self.now_playing_index = 0
         self.start_time = 0
+        self.end_time = 0
