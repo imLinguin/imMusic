@@ -1,4 +1,4 @@
-from commands import ping, play, skip, queue, filter, remove, back, move
+from commands import ping, play, skip, queue, filter, remove, back, move, shuffle, loop, jump, clear
 from lib import utils
 import logging
 
@@ -49,3 +49,12 @@ async def do_stuff(message, client):
         await message.add_reaction("🗑")
     elif cmd == "move" or cmd == "mv":
         await move.run(message, args)
+    elif cmd == "shuffle":
+        await shuffle.run(message)
+    elif cmd == "loop":
+        await loop.run(message)
+    elif cmd == "jump":
+        await jump.run(message, args)
+    elif cmd == "clear":
+        await clear.run(message)
+    await message.delete()

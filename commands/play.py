@@ -5,15 +5,15 @@ async def run(message, args):
     # Checks
     if not args:
         if not utils.resume(message):
-            await message.reply("What are you trying to resume? WTF")
+            await message.channel.send("What are you trying to resume? WTF")
         else:
             await message.add_reaction("▶")
         return
     if not await utils.check_voice_channel(message):
-        await message.reply("You have to be in a voice channel")
+        await message.channel.send("You have to be in a voice channel")
         return
     if not await utils.check_channel_perms(message):
-        await message.reply("I don't have permissions to join or speak")
+        await message.channel.send("I don't have permissions to join or speak")
         return
     if len(args) > 1:
         args = " ".join(args)

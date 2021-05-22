@@ -3,7 +3,7 @@ env/
 *.log
 
 __pycache__/
-
+.cache
 logs/
 
 *.webm

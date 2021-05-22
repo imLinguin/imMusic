@@ -1,10 +1,9 @@
 from discord import Client, Activity, ActivityType, Embed, Color
 import os
-import threading
 from dotenv import load_dotenv
 import logging
 # Bot modules
-import commandHandler
+from handlers import commandHandler, reactionHandler
 from lib import utils
 load_dotenv()
 client = Client()
@@ -43,8 +42,16 @@ async def on_voice_state_update(member, before, after):
     if member.id == client.user.id:
         if not after.channel:
             queue = utils.get_queue(before.channel.guild.id)
+            if not queue:
+                return
             await utils.destroy_queue(before.channel.guild.id)
             await queue.first_message.channel.send(embed=Embed(
                 description="I got disconnected from the channel.", colour=Color.from_rgb(237, 19, 19)))
+
+
+@client.event
+async def on_reaction_add(reaction, member):
+    await reactionHandler.handle(reaction, member)
+
 
 client.run(os.getenv("TOKEN"))

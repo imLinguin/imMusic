@@ -31,7 +31,7 @@ async def run(message, args):
                     msg += name + "\n"
                     break
         embed = discord.Embed(
-            title="List of active filters", description=msg, colour=discord.Color.from_rgb(35, 219, 201))
+            title="List of active filters", description=msg, colour=discord.Color.from_rgb(35, 219, 201), delete_after=20)
         await message.channel.send(embed=embed)
         return
     queue = utils.get_queue(message.guild.id)
@@ -49,5 +49,5 @@ async def run(message, args):
             queue.filters.append(found)
         elif not found:
             await message.channel.send("Couldn't match any filter with {0}".format(requested))
-
+    print("Updating...")
     await utils.filters_updated(message)

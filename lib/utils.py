@@ -1,8 +1,9 @@
 from time import time
 from lib import Queue
 from lib import Track
+from lib import spotify
 import youtube_dl
-from discord import Embed, FFmpegOpusAudio, Color, colour
+from discord import Embed, FFmpegOpusAudio, Color
 import asyncio
 import time
 import re
@@ -37,7 +38,7 @@ def _from_url(queue):
         'options': '-vn {0} -ss {1}'.format(parsed_filters, queue.start_time)
     }
     track = queue.tracks[queue.now_playing_index]
-    return FFmpegOpusAudio(track.stream_url, bitrate=256, **ffmpeg_options)
+    return FFmpegOpusAudio(track.stream_url, bitrate=248, **ffmpeg_options)
 
 
 async def check_voice_channel(message):
@@ -70,58 +71,83 @@ async def create_queue(message):
 
 
 async def delete_np(id):
-    if queues[id].now_playing != None:
+    if queues.get(id).now_playing:
         await queues[id].now_playing.delete()
+        queues.get(id).now_playing = None
 
 
 async def destroy_queue(id):
-    queues[id].player = None
+    await delete_np(id)
+    queue = queues.get(id)
+    queue.player = None
     print("Deleting queue from GUILD: {0}".format(id))
     try:
-        await queues[id].voice_connection.disconnect()
+        await queue.voice_connection.disconnect()
+        if queue.queue_message:
+            await queue.queue_message.delete()
     except:
         pass
-    await delete_np(id)
-    queues[id] = None
+    del queues[id]
 
 
 def check_supported(url):
     ies = youtube_dl.extractor.gen_extractors()
     for ie in ies:
-        if (ie.suitable(url) and ie.IE_NAME != 'generic') or not re.match("://", url):
+        if (ie.suitable(url) and ie.IE_NAME != 'generic') or not re.match("://", url) or spotify.is_playlist(url) or spotify.is_track(url):
             # URL is supported
             return True
     return False
 
 
+async def announce_single_song(track, channel):
+    description = ""
+    if not re.match("://", track.url):
+        description = "Queued **{0}** [{1}]".format(
+            track.title, track.requestedBy.mention)
+    else:
+        description = "Queued **[{0}]({1})** [{2}]".format(
+            track.title, track.url, track.requestedBy.mention)
+    embd = Embed(description=description, colour=Color.from_rgb(
+        141, 41, 255))
+    await channel.send(embed=embd, delete_after=10)
+
+
 async def add_to_queue(message, query):
     info = None
-    try:
-        info = ytdl.extract_info(query, download=False)
+    if spotify.is_track(query):
+        info = spotify.get_track(query)
+        new_track = Track.Track(query, info, message)
+        queues[message.guild.id].tracks.append(new_track)
+        await announce_single_song(new_track, message.channel)
+    elif spotify.is_playlist(query):
+        info = spotify.get_playlist(query)
+        tracks_count = len(info)
+        for track in info:
+            queues[message.guild.id].tracks.append(
+                Track.Track(query, track, message))
 
-        if not info:
+        embd = Embed(description="Queued **{0}** tracks".format(
+            tracks_count), colour=Color.from_rgb(141, 41, 255))
+        await message.channel.send(embed=embd, delete_after=10)
+    else:
+        try:
+            info = ytdl.extract_info(query, download=False)
+            if not info:
+                return
+            if "entries" in info:
+                info = info["entries"][0]
+            info["cover"] = info.get("thumbnail")
+        except:
+            await message.channel.send(embed=Embed(description="No results found!", colour=Color.from_rgb(237, 19, 19)))
+            queues_to_check.append(message.guild.id)
             return
-        if "entries" in info:
-            info = info["entries"][0]
-    except:
-        await message.reply(embed=Embed(description="No results found!", colour=Color.from_rgb(237, 19, 19)))
-        queues_to_check.append(message.guild.id)
-        return
+        new_track = Track.Track(query, info, message)
+        await announce_single_song(new_track, message.channel)
+        queues[message.guild.id].tracks.append(new_track)
     try:
         queues_to_check.remove(message.guild.id)
     except:
         pass
-    new_track = Track.Track(query, info, message)
-    queues[message.guild.id].tracks.append(new_track)
-    description = ""
-    if not re.match("://", new_track.url):
-        description = "Queued **{0}**".format(new_track.title)
-    else:
-        description = "Queued **[{0}]({1})**".format(
-            new_track.title, new_track.url)
-    embd = Embed(description=description, colour=Color.from_rgb(141, 41, 255))
-    await message.channel.send(embed=embd)
-
     if not queues[message.guild.id].is_playing:
         stream(message)
 
@@ -160,11 +186,16 @@ def stream_ended(e, message):
             queue.start_time = time.time(
             ) - queue.start_time
         else:
-            queue.now_playing_index += 1
+            if queue.loop != 2:
+                queue.now_playing_index += 1
             queue.start_time = 0
 
         if len(queue.tracks) > queue.now_playing_index:
             queue.voice_connection.stop()
+            stream(message)
+        elif queue.loop == 1:
+            queue.voice_connection.stop()
+            queue.now_playing_index = 0
             stream(message)
         else:
             queue.end_time = time.time()
@@ -173,10 +204,19 @@ def stream_ended(e, message):
 
 def stream(message):
     queue = queues[message.guild.id]
+    current = queue.tracks[queue.now_playing_index]
+
+    if not current.stream_url:
+        info = ytdl.extract_info("{1} {0}".format(
+            current.title, current.author), download=False)
+        if "entries" in info:
+            info = info["entries"][0]
+        current.stream_url = info.get("url")
     queue.player = _from_url(queue)
     queue.start_time = time.time()
     queue.voice_connection.play(
         queue.player, after=lambda e: stream_ended(e, message))
+
     queue.is_playing = True
     func = asyncio.run_coroutine_threadsafe(
         send_embed(message), loop)
@@ -188,9 +228,20 @@ def stream(message):
 
 
 async def send_embed(message):
-    embed = queues[message.guild.id].tracks[queues[message.guild.id].now_playing_index].get_embed()
-    await delete_np(message.guild.id)
-    queues[message.guild.id].now_playing = await message.channel.send(embed=embed)
+    #embed = queues[message.guild.id].tracks[queues[message.guild.id].now_playing_index].get_embed()
+    # await delete_np(message.guild.id)
+    track = queues[message.guild.id].tracks[queues[message.guild.id].now_playing_index]
+    embed = Embed(title=track.title, color=Color.from_rgb(242, 17, 179))
+    embed.set_thumbnail(url=track.cover)
+    if not queues[message.guild.id].now_playing:
+        queues[message.guild.id].now_playing = await message.channel.send(embed=embed)
+        await queues[message.guild.id].now_playing.add_reaction("⏮")
+        await queues[message.guild.id].now_playing.add_reaction("⏯")
+        await queues[message.guild.id].now_playing.add_reaction("⏭")
+        await queues[message.guild.id].now_playing.add_reaction("⏹")
+        await queues[message.guild.id].now_playing.add_reaction("🔃")
+    else:
+        await queues[message.guild.id].now_playing.edit(embed=embed)
 
 
 async def filters_updated(message):
