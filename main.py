@@ -1,4 +1,4 @@
-from discord import Client, Activity, ActivityType, Embed, Color
+from discord import Client, Activity, ActivityType, Embed, Color, Intents
 import os
 from dotenv import load_dotenv
 import logging
@@ -6,7 +6,9 @@ import logging
 from handlers import commandHandler, reactionHandler
 from lib import utils
 load_dotenv()
-client = Client()
+intents = Intents.default()
+intents.members = True
+client = Client(intents=intents)
 # Logging utility
 logger = logging.getLogger('discord')
 logger.setLevel(logging.INFO)
@@ -53,5 +55,8 @@ async def on_voice_state_update(member, before, after):
 async def on_reaction_add(reaction, member):
     await reactionHandler.handle(reaction, member)
 
+@client.event
+async def on_reaction_remove(reaction, member):
+    await reactionHandler.handle(reaction, member)
 
 client.run(os.getenv("TOKEN"))
