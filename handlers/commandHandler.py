@@ -57,4 +57,3 @@ async def do_stuff(message, client):
         await jump.run(message, args)
     elif cmd == "clear":
         await clear.run(message)
-    await message.delete()

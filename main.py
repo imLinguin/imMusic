@@ -1,7 +1,9 @@
+import threading
 from discord import Client, Activity, ActivityType, Embed, Color, Intents
 import os
 from dotenv import load_dotenv
 import logging
+from threading import Thread
 # Bot modules
 from handlers import commandHandler, reactionHandler
 from lib import utils
@@ -19,7 +21,9 @@ handler.setFormatter(logging.Formatter(
 logger.addHandler(handler)
 
 # Infinite loop to check every guild where queue ended to disconnect
-utils.check_disconnection
+thread = Thread(target=utils.check_disconnection)
+thread.setDaemon(True)
+thread.start()
 
 
 @client.event
@@ -54,6 +58,7 @@ async def on_voice_state_update(member, before, after):
 @client.event
 async def on_reaction_add(reaction, member):
     await reactionHandler.handle(reaction, member)
+
 
 @client.event
 async def on_reaction_remove(reaction, member):

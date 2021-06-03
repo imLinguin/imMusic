@@ -1,5 +1,5 @@
 from commands import queue as queue_cmd
-from commands import back, skip, loop
+from commands import back, skip, loop, shuffle
 from lib import utils
 
 
@@ -9,7 +9,8 @@ async def handle(reaction, member):
         return
     if member.voice.channel.id != queue.voice_connection.channel.id or member.id == queue.voice_connection.user.id:
         return
-    print(f"REACTION EMOJI: {reaction.emoji} GUILD: {reaction.message.guild.name}")
+    print(
+        f"REACTION EMOJI: {reaction.emoji} GUILD: {reaction.message.guild.name}")
     if queue.now_playing.id == reaction.message.id:
         if reaction.emoji == "⏮":
             await back.run(reaction.message)
@@ -22,6 +23,8 @@ async def handle(reaction, member):
             await skip.run(reaction.message)
         elif reaction.emoji == "🔃":
             await loop.run(reaction.message)
+        elif reaction.emoji == "🔀":
+            await shuffle.run(reaction.message)
         elif reaction.emoji == "⏹":
             await utils.destroy_queue(reaction.message.guild.id)
             return

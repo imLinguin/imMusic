@@ -38,7 +38,7 @@ def _from_url(queue):
         'options': '-vn {0} -ss {1}'.format(parsed_filters, queue.start_time)
     }
     track = queue.tracks[queue.now_playing_index]
-    return FFmpegOpusAudio(track.stream_url, bitrate=248, **ffmpeg_options)
+    return FFmpegOpusAudio(track.stream_url, bitrate=queue.bitrate, **ffmpeg_options)
 
 
 async def check_voice_channel(message):
@@ -227,21 +227,43 @@ def stream(message):
         pass
 
 
+def gen_progress_bar(start_time, duration):
+    progress = "["
+    fill = "█"
+    empty = "▁"
+    width = 15
+    current = time.time() - start_time
+
+    percentage = (current / duration)
+
+    filled = round(width * percentage)
+    emptyed = width - filled
+    for i in range(filled):
+        progress += fill
+    for i in range(emptyed):
+        progress += empty
+    return progress + "]"
+
+
 async def send_embed(message):
     #embed = queues[message.guild.id].tracks[queues[message.guild.id].now_playing_index].get_embed()
     # await delete_np(message.guild.id)
-    track = queues[message.guild.id].tracks[queues[message.guild.id].now_playing_index]
-    embed = Embed(title=track.title, color=Color.from_rgb(242, 17, 179))
+    queue = queues[message.guild.id]
+    track = queue.tracks[queue.now_playing_index]
+    embed = Embed(title=track.title,
+                  description=f"**{gen_progress_bar(queue.start_time, track.duration)}**", color=Color.from_rgb(242, 17, 179))
     embed.set_thumbnail(url=track.cover)
-    if not queues[message.guild.id].now_playing:
-        queues[message.guild.id].now_playing = await message.channel.send(embed=embed)
-        await queues[message.guild.id].now_playing.add_reaction("⏮")
-        await queues[message.guild.id].now_playing.add_reaction("⏯")
-        await queues[message.guild.id].now_playing.add_reaction("⏭")
-        await queues[message.guild.id].now_playing.add_reaction("⏹")
-        await queues[message.guild.id].now_playing.add_reaction("🔃")
+    if not queue.now_playing:
+        queue.now_playing = await message.channel.send(embed=embed)
+        await queue.now_playing.add_reaction("⏮")
+        await queue.now_playing.add_reaction("⏯")
+        await queue.now_playing.add_reaction("⏭")
+        await queue.now_playing.add_reaction("⏹")
+        await queue.now_playing.add_reaction("🔀")
+        await queue.now_playing.add_reaction("🔃")
     else:
-        await queues[message.guild.id].now_playing.edit(embed=embed)
+        await queue.now_playing.edit(embed=embed)
+    queue.now_playing_interval_helper = time.time()
 
 
 async def filters_updated(message):
@@ -264,4 +286,13 @@ def check_disconnection():
                     queues_to_check.remove(id)
             else:
                 queues_to_check.remove(id)
+        for id in queues.keys():
+            print("checking")
+            if queues[id].now_playing and queues[id].is_playing and (time.time() - queues[id].now_playing_interval_helper) > 30:
+                print("good")
+                try:
+                    asyncio.run_coroutine_threadsafe(
+                        send_embed(queues[id].now_playing), loop).result(0.2)
+                except:
+                    pass
         time.sleep(10)

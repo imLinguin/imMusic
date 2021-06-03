@@ -4,11 +4,11 @@ from random import shuffle
 
 async def run(message):
     if not await utils.check_voice_channel(message):
-        await message.reply("You have to be in a voice channel")
+        await message.channel.send("You have to be in a voice channel")
         return
 
     if not utils.check_for_existing_queue(message):
-        await message.reply("Nothing is playing")
+        await message.channel.send("Nothing is playing")
         return
 
     queue = utils.get_queue(message.guild.id)
@@ -18,4 +18,4 @@ async def run(message):
     shuffle(queue.tracks)
     queue.tracks = dont_touch + queue.tracks
 
-    await message.add_reaction("🔀")
+    await message.channel.send("Shuffled 🔀", delete_after=5)
