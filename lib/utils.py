@@ -7,6 +7,7 @@ from discord import Embed, FFmpegOpusAudio, Color
 import asyncio
 import time
 import re
+import math
 
 ytdl_format_options = {
     'format': 'bestaudio/best[height<=720]/mp3',
@@ -212,6 +213,7 @@ def stream(message):
         if "entries" in info:
             info = info["entries"][0]
         current.stream_url = info.get("url")
+        current.duration = info.get("duration")
     queue.player = _from_url(queue)
     queue.start_time = time.time()
     queue.voice_connection.play(
@@ -233,7 +235,21 @@ def gen_progress_bar(start_time, duration):
     empty = "▁"
     width = 15
     current = time.time() - start_time
+    minutes_start = math.floor(current/60)
+    seconds_start = math.floor(current - (math.floor(current/60)*60))
+    if minutes_start < 10:
+        minutes_start = f"0{minutes_start}"
+    if seconds_start < 10:
+        seconds_start = f"0{seconds_start}"
+    minutes_end = math.floor(duration/60)
+    seconds_end = math.floor(duration - (math.floor(duration/60)*60))
+    if minutes_end < 10:
+        minutes_end = f"0{minutes_end}"
+    if seconds_end < 10:
+        seconds_end = f"0{seconds_end}"
 
+    formatted_start = f"{minutes_start}:{seconds_start} "
+    formatted_end = f" {minutes_end}:{seconds_end}"
     percentage = (current / duration)
 
     filled = round(width * percentage)
@@ -242,7 +258,7 @@ def gen_progress_bar(start_time, duration):
         progress += fill
     for i in range(emptyed):
         progress += empty
-    return progress + "]"
+    return formatted_start + progress + "]" + formatted_end
 
 
 async def send_embed(message):
@@ -287,9 +303,7 @@ def check_disconnection():
             else:
                 queues_to_check.remove(id)
         for id in queues.keys():
-            print("checking")
             if queues[id].now_playing and queues[id].is_playing and (time.time() - queues[id].now_playing_interval_helper) > 30:
-                print("good")
                 try:
                     asyncio.run_coroutine_threadsafe(
                         send_embed(queues[id].now_playing), loop).result(0.2)
