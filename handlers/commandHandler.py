@@ -30,16 +30,12 @@ async def do_stuff(message, client):
         await play.run(message, args)
     elif cmd == "disconnect" or cmd == "fuckoff":
         await utils.destroy_queue(message.guild.id)
-        await message.add_reaction("👋")
     elif cmd == "pause":
         utils.pause(message)
-        await message.add_reaction("⏸")
     elif cmd == "skip" or cmd == "s":
         await skip.run(message)
-        await message.add_reaction("⏭")
     elif cmd == "back":
         await back.run(message)
-        await message.add_reaction("⏮")
     elif cmd == "queue" or cmd == "q":
         await queue.run(message)
     elif cmd == "filter":

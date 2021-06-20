@@ -110,7 +110,7 @@ async def announce_single_song(track, channel):
             track.title, track.url, track.requestedBy.mention)
     embd = Embed(description=description, colour=Color.from_rgb(
         141, 41, 255))
-    await channel.send(embed=embd, delete_after=10)
+    await channel.send(embed=embd, delete_after=20)
 
 
 async def add_to_queue(message, query):
@@ -129,7 +129,7 @@ async def add_to_queue(message, query):
 
         embd = Embed(description="Queued **{0}** tracks".format(
             tracks_count), colour=Color.from_rgb(141, 41, 255))
-        await message.channel.send(embed=embd, delete_after=10)
+        await message.channel.send(embed=embd, delete_after=20)
     else:
         try:
             info = ytdl.extract_info(query, download=False)
@@ -139,16 +139,14 @@ async def add_to_queue(message, query):
                 info = info["entries"][0]
             info["cover"] = info.get("thumbnail")
         except:
-            await message.channel.send(embed=Embed(description="No results found!", colour=Color.from_rgb(237, 19, 19)))
-            queues_to_check.append(message.guild.id)
+            await message.channel.send(embed=Embed(description="No results found or content is 18+", colour=Color.from_rgb(237, 19, 19)))
+            if len(queues[message.guild.id].tracks) == 0:
+                queues[message.guild.id].end_time = time.time()
+                queues_to_check.append(message.guild.id)
             return
         new_track = Track.Track(query, info, message)
         await announce_single_song(new_track, message.channel)
         queues[message.guild.id].tracks.append(new_track)
-    try:
-        queues_to_check.remove(message.guild.id)
-    except:
-        pass
     if not queues[message.guild.id].is_playing:
         stream(message)
 
@@ -230,7 +228,7 @@ def stream(message):
 
 
 def gen_progress_bar(start_time, duration):
-    progress = "["
+    progress = "**["
     fill = "█"
     empty = "▁"
     width = 15
@@ -258,17 +256,22 @@ def gen_progress_bar(start_time, duration):
         progress += fill
     for i in range(emptyed):
         progress += empty
-    return formatted_start + progress + "]" + formatted_end
+    return formatted_start + progress + "]**" + formatted_end
 
 
 async def send_embed(message):
-    #embed = queues[message.guild.id].tracks[queues[message.guild.id].now_playing_index].get_embed()
-    # await delete_np(message.guild.id)
     queue = queues[message.guild.id]
     track = queue.tracks[queue.now_playing_index]
+    next_track = ""
+    if len(queue.tracks) > 1 and queue.now_playing_index + 1 < len(queue.tracks):
+        next_track = queue.tracks[queue.now_playing_index + 1].title
+    else:
+        next_track = "None"
     embed = Embed(title=track.title,
-                  description=f"**{gen_progress_bar(queue.start_time, track.duration)}**", color=Color.from_rgb(242, 17, 179))
+                  description=f"{gen_progress_bar(queue.start_time, track.duration)}", color=Color.from_rgb(0, 241, 183))
     embed.set_thumbnail(url=track.cover)
+    embed.add_field(name="Next", value=next_track)
+    embed.add_field(name="Requested by", value=track.requestedBy.mention)
     if not queue.now_playing:
         queue.now_playing = await message.channel.send(embed=embed)
         await queue.now_playing.add_reaction("⏮")

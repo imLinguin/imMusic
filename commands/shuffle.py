@@ -18,4 +18,4 @@ async def run(message):
     shuffle(queue.tracks)
     queue.tracks = dont_touch + queue.tracks
 
-    await message.channel.send("Shuffled 🔀", delete_after=5)
+    await message.channel.send("Shuffled 🔀")
