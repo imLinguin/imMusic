@@ -1,6 +1,9 @@
 ## Short Description
 Music bot which has a lot of functions usually available in paid plans in other bots.
 
+## Invitation Link
+You can invite bot to your server using this [link](https://discord.com/api/oauth2/authorize?client_id=745621767816740936&permissions=36711488&scope=bot)
+
 ## Hosting own instance of the bot
 You can easly create own instance of the bot by cloning this repo:
 
