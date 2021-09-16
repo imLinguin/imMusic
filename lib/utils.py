@@ -147,6 +147,10 @@ async def add_to_queue(message, query):
         new_track = Track.Track(query, info, message)
         await announce_single_song(new_track, message.channel)
         queues[message.guild.id].tracks.append(new_track)
+    try:
+        queues_to_check.remove(message.guild.id)
+    except:
+        pass
     if not queues[message.guild.id].is_playing:
         stream(message)
 
