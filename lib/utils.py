@@ -3,7 +3,7 @@ from lib import Queue
 from lib import Track
 from lib import spotify
 import youtube_dl
-from discord import Embed, FFmpegOpusAudio, Color
+from discord import Embed, FFmpegOpusAudio, Color, errors
 import asyncio
 import time
 import re
@@ -73,7 +73,10 @@ async def create_queue(message):
 
 async def delete_np(id):
     if queues.get(id).now_playing:
-        await queues[id].now_playing.delete()
+        try:
+            await queues[id].now_playing.delete()
+        except errors.NotFound:
+            pass
         queues.get(id).now_playing = None
 
 
